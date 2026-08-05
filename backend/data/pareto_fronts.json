@@ -1,0 +1,109 @@
+{
+  "concept_configurations": {
+    "default": [
+      {
+        "id": "cfg_gpt4_cot_rag",
+        "name": "GPT-4 + CoT + Full RAG",
+        "model": "llama-3.3-70b-versatile",
+        "prompt_style": "chain_of_thought",
+        "tool_chain": ["pdf_parse", "web_search", "rag_retrieval"],
+        "quality": 0.94,
+        "latency_ms": 4200,
+        "cost_per_query": 0.18,
+        "is_pareto_optimal": true
+      },
+      {
+        "id": "cfg_claude_simple_rag",
+        "name": "Claude + Simple + Lightweight RAG",
+        "model": "llama-3.1-8b-instant",
+        "prompt_style": "simple",
+        "tool_chain": ["rag_retrieval"],
+        "quality": 0.87,
+        "latency_ms": 2100,
+        "cost_per_query": 0.08,
+        "is_pareto_optimal": true
+      },
+      {
+        "id": "cfg_local_zeroshot",
+        "name": "Local LLM + Zero-Shot",
+        "model": "gemma2-9b-it",
+        "prompt_style": "zero_shot",
+        "tool_chain": [],
+        "quality": 0.71,
+        "latency_ms": 800,
+        "cost_per_query": 0.003,
+        "is_pareto_optimal": true
+      }
+    ],
+    "code_heavy": [
+      {
+        "id": "cfg_code_expert_full",
+        "name": "Code Expert + Static Analysis",
+        "model": "llama-3.3-70b-versatile",
+        "prompt_style": "expert_code",
+        "tool_chain": ["code_exec", "static_analysis"],
+        "quality": 0.96,
+        "latency_ms": 5100,
+        "cost_per_query": 0.22,
+        "is_pareto_optimal": true
+      },
+      {
+        "id": "cfg_code_balanced",
+        "name": "Balanced Code + Lint",
+        "model": "llama-3.1-8b-instant",
+        "prompt_style": "structured",
+        "tool_chain": ["static_analysis"],
+        "quality": 0.85,
+        "latency_ms": 1900,
+        "cost_per_query": 0.06,
+        "is_pareto_optimal": true
+      },
+      {
+        "id": "cfg_code_fast",
+        "name": "Fast Code Scan",
+        "model": "gemma2-9b-it",
+        "prompt_style": "zero_shot",
+        "tool_chain": [],
+        "quality": 0.68,
+        "latency_ms": 600,
+        "cost_per_query": 0.002,
+        "is_pareto_optimal": true
+      }
+    ],
+    "data_analysis": [
+      {
+        "id": "cfg_data_full_stack",
+        "name": "Full Data Stack + SQL + RAG",
+        "model": "llama-3.3-70b-versatile",
+        "prompt_style": "analytical",
+        "tool_chain": ["sql_access", "math_tools", "rag_retrieval"],
+        "quality": 0.95,
+        "latency_ms": 4800,
+        "cost_per_query": 0.20,
+        "is_pareto_optimal": true
+      },
+      {
+        "id": "cfg_data_balanced",
+        "name": "Balanced Analytics",
+        "model": "llama-3.1-8b-instant",
+        "prompt_style": "structured",
+        "tool_chain": ["sql_access", "math_tools"],
+        "quality": 0.82,
+        "latency_ms": 2400,
+        "cost_per_query": 0.09,
+        "is_pareto_optimal": true
+      },
+      {
+        "id": "cfg_data_fast",
+        "name": "Fast Numeric",
+        "model": "gemma2-9b-it",
+        "prompt_style": "zero_shot",
+        "tool_chain": ["math_tools"],
+        "quality": 0.65,
+        "latency_ms": 700,
+        "cost_per_query": 0.003,
+        "is_pareto_optimal": true
+      }
+    ]
+  }
+}
