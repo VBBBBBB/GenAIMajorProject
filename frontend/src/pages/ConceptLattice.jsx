@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { Card, StatCard, Spinner, EmptyState } from '../components/UI'
+import { Card, StatCard, Spinner, Icon } from '../components/UI'
 import LatticeCanvas from '../components/Charts/LatticeCanvas'
 import { useToast } from '../context/ToastContext'
 
@@ -30,7 +30,7 @@ export default function ConceptLattice() {
           <h1>Concept Lattice</h1>
           <p>Hasse diagram of all formal concepts. Hover nodes for extent/intent. Nodes ordered by specialisation.</p>
         </div>
-        <button className="btn btn-outline btn-sm" onClick={load}>⟳ Recompute</button>
+        <button className="btn btn-outline btn-sm" onClick={load}><Icon name="refresh" size={14} /> Recompute</button>
       </div>
 
       <div className="grid-2" style={{ marginBottom: 18 }}>
@@ -38,7 +38,7 @@ export default function ConceptLattice() {
         <StatCard label="Hasse Edges"     value={lattice?.stats?.num_edges}    sub="cover relations" />
       </div>
 
-      <Card title="Hasse Diagram" icon="⬡" style={{ marginBottom: 18 }}
+      <Card title="Hasse Diagram" icon="network" style={{ marginBottom: 18 }}
         extra={<span className="info-text">Hover a node to inspect extent/intent</span>}
       >
         {loading
@@ -47,7 +47,7 @@ export default function ConceptLattice() {
         }
       </Card>
 
-      <Card title="All Concepts" icon="📋">
+      <Card title="All Concepts" icon="layers">
         {loading ? <Spinner /> : (
           <div className="concept-grid">
             {lattice?.concepts?.map(c => (
@@ -80,7 +80,7 @@ export default function ConceptLattice() {
               <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)', fontSize: 14, fontWeight: 700 }}>
                 {selected.id}
               </span>
-              <button className="btn btn-outline btn-sm" onClick={() => setSelected(null)}>✕</button>
+              <button className="btn btn-outline btn-sm" onClick={() => setSelected(null)}><Icon name="x" size={14} /></button>
             </div>
             <div className="result-section">
               <h4>Extent — {selected.extent.length} Task(s)</h4>

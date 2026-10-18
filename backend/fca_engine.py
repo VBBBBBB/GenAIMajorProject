@@ -217,8 +217,14 @@ def _assign_levels(concepts: List[FormalConcept], edges: List[Tuple[str, str]], 
 
 def find_concept_for_attributes(attr_set: Set[str], lattice: ConceptLattice) -> Optional[FormalConcept]:
     """
-    Given a set of required attributes, find the smallest formal concept
-    whose intent contains all of them (Galois closure navigation).
+    Galois-closure navigation: given required attributes B, return the unique
+    concept (B'', B') whose intent is the *smallest* superset of B.
+
+    Equivalently, among all concepts whose intent contains B, pick the one with
+    the LARGEST extent: as the intent grows the extent shrinks, so the maximal
+    extent corresponds to the minimal intent superset (the closure B'').
+    NOTE: selecting the *smallest* extent would always return the all-attribute
+    concept (empty extent), which would make routing/gap-detection degenerate.
     """
     candidates = [
         c for c in lattice.concepts
@@ -226,8 +232,7 @@ def find_concept_for_attributes(attr_set: Set[str], lattice: ConceptLattice) -> 
     ]
     if not candidates:
         return None
-    # Return the most specific (smallest extent = deepest in lattice)
-    return min(candidates, key=lambda c: len(c.extent))
+    return max(candidates, key=lambda c: len(c.extent))
 
 
 def get_concept_by_id(cid: str, lattice: ConceptLattice) -> Optional[FormalConcept]:
@@ -238,8 +243,12 @@ def get_concept_by_id(cid: str, lattice: ConceptLattice) -> Optional[FormalConce
 
 
 def check_attribute_gap(attr_set: Set[str], lattice: ConceptLattice) -> bool:
-    """Returns True if there is NO concept covering this attribute set exactly."""
-    return find_concept_for_attributes(attr_set, lattice) is None
+    """
+    True if no existing object (task) realises this attribute set, i.e. the
+    Galois closure has an empty extent (a genuine capability gap).
+    """
+    concept = find_concept_for_attributes(attr_set, lattice)
+    return concept is None or len(concept.extent) == 0
 
 
 def get_task_attributes(task: str, ctx: FormalContext) -> Set[str]:

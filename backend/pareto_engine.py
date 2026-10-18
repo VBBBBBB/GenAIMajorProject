@@ -11,9 +11,9 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Set, Tuple, Optional
 
-from models import Configuration, ParetoFrontier
+from models import Configuration, ParetoFrontier, FormalConcept
 
 DATA_DIR = Path(__file__).parent / "data"
 FRONTS_FILE = DATA_DIR / "pareto_fronts.json"
@@ -132,20 +132,70 @@ def load_config_library() -> Dict[str, List[Configuration]]:
     return result
 
 
-def get_pareto_frontier_for_concept(concept_id: str) -> ParetoFrontier:
+def pool_signatures(library: Optional[Dict[str, List[Configuration]]] = None) -> Dict[str, Set[str]]:
     """
-    Get (or compute) the Pareto frontier for a specific concept.
-    Uses concept attributes to pick the best-matching configuration pool.
+    Derive a capability signature (union of tool-chain attributes) for every
+    configuration pool. This is what links the FCA lattice to the Pareto pools:
+    a concept's intent is matched against these signatures.
+    """
+    library = library or load_config_library()
+    signatures: Dict[str, Set[str]] = {}
+    for pool_name, cfgs in library.items():
+        attrs: Set[str] = set()
+        for cfg in cfgs:
+            attrs.update(cfg.tool_chain)
+        signatures[pool_name] = attrs
+    return signatures
+
+
+def select_pool_for_intent(
+    intent: Set[str],
+    library: Optional[Dict[str, List[Configuration]]] = None,
+) -> str:
+    """
+    Pick the configuration pool whose capability signature best covers the
+    concept's intent (attributes). Ties fall back to the 'default' pool.
+
+    This replaces the old concept-id suffix hack, so pool selection is now
+    driven by the actual required capabilities rather than an arbitrary hash
+    character. Ties prefer the more specific (smaller) signature, then default.
+    """
+    library = library or load_config_library()
+    signatures = pool_signatures(library)
+
+    best_pool, best_score, best_size = "default", 0, float("inf")
+    for pool_name, sig in signatures.items():
+        score = len(intent & sig)
+        if score > best_score or (score == best_score and score > 0 and len(sig) < best_size):
+            best_score, best_size, best_pool = score, len(sig), pool_name
+    return best_pool if best_score > 0 else "default"
+
+
+def get_pareto_frontier_for_concept(
+    concept_id: str,
+    concept: Optional[FormalConcept] = None,
+    requested_attributes: Optional[Set[str]] = None,
+) -> ParetoFrontier:
+    """
+    Get (or compute) the Pareto frontier for a specific formal concept.
+    The pool is chosen from the requested capabilities when supplied (precise),
+    otherwise from the concept's intent (FCA-based). Pass `concept` when it is
+    already known to avoid recomputing the lattice.
     """
     library = load_config_library()
 
-    # Simple heuristic to choose pool based on concept id suffix
-    if concept_id.endswith(("A", "B", "C", "D", "E")):
-        pool_key = "code_heavy"
-    elif concept_id.endswith(("0", "1", "2", "3")):
-        pool_key = "data_analysis"
+    if concept is None:
+        try:
+            from fca_engine import load_formal_context, compute_concept_lattice, get_concept_by_id
+            concept = get_concept_by_id(concept_id, compute_concept_lattice(load_formal_context()))
+        except Exception:
+            concept = None
+
+    if requested_attributes is not None:
+        capability_set = set(requested_attributes)
     else:
-        pool_key = "default"
+        capability_set = set(concept.intent) if concept is not None else set()
+    pool_key = select_pool_for_intent(capability_set, library)
 
     configs = library.get(pool_key, library["default"])
     front   = compute_pareto_front(configs)
@@ -154,7 +204,21 @@ def get_pareto_frontier_for_concept(concept_id: str) -> ParetoFrontier:
     return ParetoFrontier(
         concept_id=concept_id,
         configurations=configs,
-        pareto_front=front_ids
+        pareto_front=front_ids,
+        pool=pool_key,
+    )
+
+
+def get_pareto_frontier_for_pool(pool: str) -> ParetoFrontier:
+    """Get the Pareto frontier for an explicitly named configuration pool."""
+    library = load_config_library()
+    configs = library.get(pool, library.get("default", []))
+    front   = compute_pareto_front(configs)
+    return ParetoFrontier(
+        concept_id=pool,
+        configurations=configs,
+        pareto_front=[c.id for c in front],
+        pool=pool,
     )
 
 
@@ -166,6 +230,7 @@ def get_all_configurations_for_pool(pool: str = "default") -> List[Configuration
 def pareto_frontier_to_dict(pf: ParetoFrontier) -> dict:
     return {
         "concept_id": pf.concept_id,
+        "pool": pf.pool,
         "configurations": [c.model_dump() for c in pf.configurations],
         "pareto_front": pf.pareto_front,
         "pareto_configs": [c.model_dump() for c in pf.configurations if c.id in pf.pareto_front]

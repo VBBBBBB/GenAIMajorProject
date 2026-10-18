@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { Card, Spinner } from '../components/UI'
+import { Spinner, Icon } from '../components/UI'
 import { useToast } from '../context/ToastContext'
 
 export default function SelfRefactor() {
@@ -102,7 +102,7 @@ export default function SelfRefactor() {
           <p>4 mathematical operations: incremental lattice updates, redundancy proofs, gap detection, Pareto recomputation.</p>
         </div>
         <button className="btn btn-primary btn-sm" onClick={runMaintenance} disabled={maintLoading}>
-          {maintLoading ? <Spinner /> : '🔄'} Full Maintenance Cycle
+          {maintLoading ? <Spinner /> : <Icon name="refresh" size={14} />} Full Maintenance Cycle
         </button>
       </div>
 
@@ -128,7 +128,7 @@ export default function SelfRefactor() {
               <input value={addTasks} onChange={e => setAddTasks(e.target.value)} placeholder="e.g., Research Report, Data Analysis" />
             </div>
             <button className="btn btn-success btn-sm" onClick={handleAddTool} disabled={addLoading}>
-              {addLoading ? <Spinner /> : '+'} Add Tool
+              {addLoading ? <Spinner /> : <Icon name="plus" size={14} />} Add Tool
             </button>
             {addResult && <pre className="result-json">{JSON.stringify(addResult, null, 2)}</pre>}
           </div>
@@ -145,7 +145,7 @@ export default function SelfRefactor() {
               </select>
             </div>
             <button className="btn btn-danger btn-sm" onClick={handleRemoveTool} disabled={removeLoading}>
-              {removeLoading ? <Spinner /> : '✕'} Remove Tool
+              {removeLoading ? <Spinner /> : <Icon name="trash" size={14} />} Remove Tool
             </button>
             {removeResult && <pre className="result-json">{JSON.stringify(removeResult, null, 2)}</pre>}
           </div>
@@ -164,7 +164,7 @@ export default function SelfRefactor() {
             </select>
           </div>
           <button className="btn btn-outline btn-sm" onClick={handleRedundancy} disabled={redLoading}>
-            {redLoading ? <Spinner /> : '🔍'} Check Redundancy
+            {redLoading ? <Spinner /> : <Icon name="search" size={14} />} Check Redundancy
           </button>
           {redResult && (
             <div style={{ marginTop: 10 }}>
@@ -175,8 +175,10 @@ export default function SelfRefactor() {
                 border: `1px solid ${redResult.is_redundant ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`,
                 marginBottom: 8,
               }}>
-                <strong style={{ color: redResult.is_redundant ? 'var(--red)' : 'var(--green)' }}>
-                  {redResult.is_redundant ? '⚠ REDUNDANT' : '✓ NOT REDUNDANT'}
+                <strong style={{ color: redResult.is_redundant ? 'var(--red)' : 'var(--green)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {redResult.is_redundant
+                    ? <><Icon name="alert" size={14} /> REDUNDANT</>
+                    : <><Icon name="check" size={14} /> NOT REDUNDANT</>}
                 </strong>
               </div>
               <pre className="result-json">{JSON.stringify(redResult, null, 2)}</pre>
@@ -200,7 +202,7 @@ export default function SelfRefactor() {
             ))}
           </div>
           <button className="btn btn-outline btn-sm" onClick={handleGapDetect} disabled={gapLoading || gapSelected.size === 0}>
-            {gapLoading ? <Spinner /> : '🔍'} Detect Gap
+            {gapLoading ? <Spinner /> : <Icon name="search" size={14} />} Detect Gap
           </button>
           {gapResult && (
             <div style={{ marginTop: 10 }}>
@@ -209,8 +211,10 @@ export default function SelfRefactor() {
                 background: gapResult.has_covering_concept ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)',
                 border: `1px solid ${gapResult.has_covering_concept ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`,
               }}>
-                <strong style={{ color: gapResult.has_covering_concept ? 'var(--green)' : 'var(--yellow)' }}>
-                  {gapResult.has_covering_concept ? '✓ COVERED' : '⚠ GAP DETECTED'}
+                <strong style={{ color: gapResult.has_covering_concept ? 'var(--green)' : 'var(--yellow)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {gapResult.has_covering_concept
+                    ? <><Icon name="check" size={14} /> COVERED</>
+                    : <><Icon name="alert" size={14} /> GAP DETECTED</>}
                 </strong>
               </div>
               <pre className="result-json">{JSON.stringify(gapResult, null, 2)}</pre>

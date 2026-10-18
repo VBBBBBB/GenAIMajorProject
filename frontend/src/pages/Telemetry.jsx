@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Plot from 'react-plotly.js'
 import { api } from '../api'
-import { Card, StatCard, Spinner } from '../components/UI'
+import { Card, StatCard, Spinner, Icon } from '../components/UI'
 import { useToast } from '../context/ToastContext'
 
 export default function Telemetry() {
@@ -55,7 +55,7 @@ export default function Telemetry() {
           <h1>Telemetry Dashboard</h1>
           <p>Real-time execution metrics logged to SQLite. Powers Pareto front recomputation.</p>
         </div>
-        <button className="btn btn-outline btn-sm" onClick={load}>⟳ Refresh</button>
+        <button className="btn btn-outline btn-sm" onClick={load}><Icon name="refresh" size={14} /> Refresh</button>
       </div>
 
       <div className="grid-4" style={{ marginBottom: 24 }}>
@@ -69,13 +69,13 @@ export default function Telemetry() {
         <div style={{ textAlign: 'center', padding: 60 }}><Spinner /></div>
       ) : entries.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📡</div>
+          <div className="empty-icon"><Icon name="activity" size={40} strokeWidth={1.5} /></div>
           <p>No executions yet. Route a task to populate telemetry.</p>
         </div>
       ) : (
         <>
           <div className="grid-2" style={{ marginBottom: 18 }}>
-            <Card title="Quality over Time" icon="📊">
+            <Card title="Quality over Time" icon="chart">
               <Plot
                 data={[mkTrace(quals, 'Quality', '#10b981')]}
                 layout={{ ...plotLayout(''), yaxis: { ...plotLayout('').yaxis, range: [0, 1] } }}
@@ -83,7 +83,7 @@ export default function Telemetry() {
                 config={{ displayModeBar: false, responsive: true }}
               />
             </Card>
-            <Card title="Latency over Time" icon="⏱">
+            <Card title="Latency over Time" icon="clock">
               <Plot
                 data={[mkTrace(lats, 'Latency (ms)', '#f59e0b')]}
                 layout={plotLayout('')}
@@ -93,7 +93,7 @@ export default function Telemetry() {
             </Card>
           </div>
 
-          <Card title="Recent Executions" icon="📋">
+          <Card title="Recent Executions" icon="table">
             <div style={{ overflowX: 'auto' }}>
               <table className="telem-table">
                 <thead>

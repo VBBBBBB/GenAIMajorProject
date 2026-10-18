@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { api } from '../api'
-import { Card, Spinner } from '../components/UI'
+import { Card, Spinner, Icon } from '../components/UI'
 import { useToast } from '../context/ToastContext'
 
 export default function FormalContext() {
@@ -50,7 +50,7 @@ export default function FormalContext() {
           <h1>Formal Context Matrix</h1>
           <p>Binary incidence matrix K = (G, M, I). Click any cell to toggle the relation.</p>
         </div>
-        <button className="btn btn-outline btn-sm" onClick={load}>⟳ Reload</button>
+        <button className="btn btn-outline btn-sm" onClick={load}><Icon name="refresh" size={14} /> Reload</button>
       </div>
 
       <div className="grid-3" style={{ marginBottom: 18 }}>
@@ -69,7 +69,7 @@ export default function FormalContext() {
         </div>
       </div>
 
-      <Card title="K = (G, M, I) — Tasks × Attributes" icon="⊞">
+      <Card title="K = (G, M, I) — Tasks × Attributes" icon="table">
         <div className="matrix-wrapper">
           <table className="matrix-table">
             <thead>

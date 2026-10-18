@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Figure 1. Proposed methodology & system workflow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman&family=Arial:wght@400;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #FFFFFF;
+    font-family: Arial, sans-serif;
+    color: #000000;
+    width: 1050px;
+    padding: 20px 30px;
+    margin: 0 auto;
+  }
+
+  .canvas {
+    position: relative;
+    width: 980px;
+    height: 620px;
+    background: #FFFFFF;
+    margin: 0 auto;
+  }
+
+  /* Node styling matching the exact IEEE paper style */
+  .node {
+    position: absolute;
+    border: 1.5px solid #000000;
+    border-radius: 10px;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    z-index: 2;
+  }
+
+  .node-label {
+    margin-top: 4px;
+  }
+
+  /* Outer grouped container (like the College A issuer box in the image) */
+  .group-box {
+    position: absolute;
+    border: 1.5px solid #000000;
+    border-radius: 14px;
+    background: #FFFFFF;
+    z-index: 1;
+  }
+
+  /* Icons */
+  .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Arrow labels */
+  .edge-label {
+    position: absolute;
+    font-size: 10px;
+    font-family: Arial, sans-serif;
+    color: #000000;
+    background: #FFFFFF;
+    padding: 1px 4px;
+    text-align: center;
+    line-height: 1.2;
+    z-index: 3;
+  }
+
+  /* Figure Caption */
+  .caption {
+    text-align: center;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 14.5px;
+    margin-top: 14px;
+    color: #000000;
+    letter-spacing: 0.2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="canvas">
+  <!-- SVG overlay for all connector lines and arrows -->
+  <svg width="980" height="620" style="position:absolute; top:0; left:0; z-index:1;">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#000000" />
+      </marker>
+    </defs>
+
+    <!-- Top Flow Arrows -->
+    <!-- User -> Group Box -->
+    <path d="M 90 85 L 180 85" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Extractor -> Encoder inside group box -->
+    <path d="M 330 85 L 385 85" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Group Box -> Central Lattice Hub -->
+    <path d="M 590 85 L 750 85" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Lattice Hub Down to Branch 1 (FCA Galois Closure Engine) -->
+    <path d="M 770 160 L 770 230 L 165 230 L 165 270" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Lattice Hub Down to Branch 2 (Pareto Optimizer) -->
+    <path d="M 800 160 L 800 245 L 360 245 L 360 270" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Lattice Hub Down to Branch 3 (Authorized Sandboxes) -->
+    <path d="M 830 160 L 830 270" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Lattice Hub Down to Branch 4 (Capability Gap Alert / Dropped Tool) -->
+    <path d="M 870 160 L 870 245 L 900 245 L 900 270" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Galois Engine down to Verified Extent A* -->
+    <path d="M 165 340 L 165 410" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Pareto Optimizer down to Model Router -->
+    <path d="M 360 340 L 360 410" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Authorized Sandboxes down to Telemetry & Audit -->
+    <path d="M 830 340 L 830 390 L 590 390 L 590 410" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Telemetry Audit down to No Access / Deficit Detection -->
+    <path d="M 590 480 L 590 520" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Upward audit loop: Telemetry -> Sandboxes -->
+    <path d="M 540 410 L 540 315 L 750 315" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+
+    <!-- Cross connection from Pareto to Model Router & Extent -->
+    <path d="M 245 445 L 290 445" stroke="#000000" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+  </svg>
+
+  <!-- ================= TOP ROW ================= -->
+
+  <!-- 1. User Node (Left) -->
+  <div style="position:absolute; top:20px; left:15px; text-align:center;">
+    <div style="font-size:12px; font-weight:700; margin-bottom:4px;">User / Client</div>
+    <div style="border:1.5px solid #000; border-radius:10px; width:75px; height:85px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#FFF;">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.5">
+        <circle cx="12" cy="7" r="4" fill="#DBEAFE"/>
+        <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" fill="#DBEAFE"/>
+      </svg>
+      <div style="font-size:9px; font-weight:700; margin-top:2px;">Task Input</div>
+    </div>
+  </div>
+
+  <!-- Grouped Container (Preprocessor / Ingestion) -->
+  <div class="group-box" style="top:32px; left:180px; width:410px; height:105px;"></div>
+
+  <!-- Inside Group Box: Sub-node 1 (Capability Extractor) -->
+  <div class="node" style="top:47px; left:195px; width:135px; height:75px;">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="1.8">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#CCFBF1"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+    <div class="node-label">Capability Extractor<br><span style="font-size:9.5px; font-weight:normal; color:#333;">(Few-Shot Attribute Parser)</span></div>
+  </div>
+
+  <!-- Inside Group Box: Sub-node 2 (Attribute Vector Encoding) -->
+  <div class="node" style="top:47px; left:385px; width:185px; height:75px;">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="1.8">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="#FEF3C7"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+    <div class="node-label">Encode Formal Target Set<br><span style="font-size:9.5px; font-family:monospace; font-weight:bold;">B<sub>req</sub> = {sql, code, web}</span></div>
+  </div>
+
+  <!-- Top Right Hub: Central Concept Lattice Knowledge Base (analogous to Blockchain Ledger) -->
+  <div style="position:absolute; top:10px; left:715px; text-align:center;">
+    <div style="font-size:12px; font-weight:700; margin-bottom:4px;">Formal Concept Lattice<br><span style="font-size:10px; font-weight:normal;">Knowledge Base K = (G, M, I)</span></div>
+    <div style="border:1.5px solid #000; border-radius:10px; width:150px; height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#FFF; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+      <!-- Geometric Lattice/Cube Icon matching the reference image's ledger icon -->
+      <svg width="60" height="60" viewBox="0 0 64 64" fill="none">
+        <polygon points="32,6 56,18 56,46 32,58 8,46 8,18" stroke="#000" stroke-width="2" fill="#F8FAFC"/>
+        <line x1="32" y1="6" x2="32" y2="58" stroke="#000" stroke-width="1.5"/>
+        <line x1="8" y1="18" x2="56" y2="46" stroke="#000" stroke-width="1.5"/>
+        <line x1="8" y1="46" x2="56" y2="18" stroke="#000" stroke-width="1.5"/>
+        <circle cx="32" cy="32" r="9" fill="#F59E0B" stroke="#000" stroke-width="1.5"/>
+        <circle cx="32" cy="6" r="3.5" fill="#3B82F6"/>
+        <circle cx="56" cy="18" r="3.5" fill="#10B981"/>
+        <circle cx="56" cy="46" r="3.5" fill="#8B5CF6"/>
+        <circle cx="32" cy="58" r="3.5" fill="#EC4899"/>
+        <circle cx="8" cy="46" r="3.5" fill="#14B8A6"/>
+        <circle cx="8" cy="18" r="3.5" fill="#6366F1"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Edge Labels along top/middle arrows -->
+  <div class="edge-label" style="top:195px; left:190px;">Exact Galois Closure<br>Derivation B''</div>
+  <div class="edge-label" style="top:195px; left:395px;">Priority Weights<br>w = (w<sub>q</sub>, w<sub>λ</sub>, w<sub>γ</sub>)</div>
+  <div class="edge-label" style="top:195px; left:775px;">Dispatch Verified<br>Tool Schemas</div>
+  <div class="edge-label" style="top:195px; left:890px;">Unreachable<br>Extent B'=∅</div>
+
+  <!-- ================= MIDDLE ROW ================= -->
+
+  <!-- Node 1: Galois Closure Engine -->
+  <div class="node" style="top:270px; left:85px; width:160px; height:70px;">
+    <div style="font-size:14px; margin-bottom:2px;">📐</div>
+    <div class="node-label">Galois Closure Engine<br><span style="font-size:9.5px; font-weight:normal;">B''<sub>req</sub> = (B'<sub>req</sub>)'</span></div>
+  </div>
+
+  <!-- Node 2: Pareto Frontier Optimizer -->
+  <div class="node" style="top:270px; left:280px; width:160px; height:70px;">
+    <div style="font-size:14px; margin-bottom:2px;">📈</div>
+    <div class="node-label">Pareto Optimizer<br><span style="font-size:9.5px; font-weight:normal;">Min L<sub>2</sub> Distance to Z*</span></div>
+  </div>
+
+  <!-- Node 3: Access Control & Sandboxes (Center) -->
+  <div class="node" style="top:270px; left:750px; width:160px; height:70px;">
+    <div style="font-size:14px; margin-bottom:2px;">🛡️</div>
+    <div class="node-label">Tool Access Control<br>& Sandbox Dispatch</div>
+  </div>
+
+  <!-- Node 4: Capability Deficit / Fraud College analog -->
+  <div class="node" style="top:270px; left:850px; width:120px; height:70px;">
+    <div style="font-size:14px; margin-bottom:2px;">⚠️</div>
+    <div class="node-label">Capability Gap<br><span style="font-size:9.5px; font-weight:normal; color:#B91C1C;">Missing Tool</span></div>
+  </div>
+
+  <!-- ================= BOTTOM ROW ================= -->
+
+  <!-- Bottom Left: Covering Extent A* -->
+  <div class="node" style="top:410px; left:85px; width:160px; height:70px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    <div class="node-label">Exact Covering Extent A*<br><span style="font-size:9.5px; font-weight:normal;">CoverageError = 0</span></div>
+  </div>
+
+  <!-- Bottom Mid-Left: Multi-Model Router -->
+  <div class="node" style="top:410px; left:280px; width:160px; height:70px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <div class="node-label">Model Router (Groq/GPT)<br><span style="font-size:9.5px; font-weight:normal;">Optimal Config c*</span></div>
+  </div>
+
+  <!-- Bottom Center: Telemetry, Audit & Redundancy Tracking -->
+  <div class="node" style="top:410px; left:510px; width:165px; height:70px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <path d="M9 15l2 2 4-4"/>
+    </svg>
+    <div class="node-label">Telemetry Profiler &<br>Redundancy Audit</div>
+  </div>
+
+  <!-- Bottom Deep: No Permission / Capability Deficit Rejection (matching the exact circle-slash icon) -->
+  <div class="node" style="top:520px; left:515px; width:155px; height:65px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+    </svg>
+    <div class="node-label">Execution Halted<br><span style="font-size:9px; font-weight:normal; color:#B91C1C;">(Capability Gap Detected)</span></div>
+  </div>
+
+</div>
+
+<!-- Center IEEE-style caption -->
+<div class="caption">
+  Figure 1. Proposed methodology & system workflow
+</div>
+
+</body>
+</html>

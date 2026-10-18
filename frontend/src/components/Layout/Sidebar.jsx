@@ -1,16 +1,18 @@
+import { Icon } from '../UI'
+
 const NAV = [
-  { section: 'Overview', items: [{ id: 'overview', icon: '🏠', label: 'Dashboard' }] },
+  { section: 'Overview', items: [{ id: 'overview', icon: 'dashboard', label: 'Dashboard' }] },
   {
     section: 'Phase 1 — FCA', items: [
-      { id: 'context', icon: '⊞', label: 'Formal Context' },
-      { id: 'lattice', icon: '⬡', label: 'Concept Lattice' },
-      { id: 'galois',  icon: '⊕', label: 'Galois Closure' },
+      { id: 'context', icon: 'table', label: 'Formal Context' },
+      { id: 'lattice', icon: 'network', label: 'Concept Lattice' },
+      { id: 'galois',  icon: 'closure', label: 'Galois Closure' },
     ],
   },
-  { section: 'Phase 2 — Pareto', items: [{ id: 'pareto', icon: '📈', label: 'Pareto Frontier' }] },
-  { section: 'Phase 3 — Router', items: [{ id: 'router', icon: '⚡', label: 'Runtime Router', badge: 'Groq' }] },
-  { section: 'Phase 4 — Refactor', items: [{ id: 'refactor', icon: '🔄', label: 'Self-Refactoring' }] },
-  { section: 'Telemetry', items: [{ id: 'telemetry', icon: '📡', label: 'Telemetry' }] },
+  { section: 'Phase 2 — Pareto', items: [{ id: 'pareto', icon: 'trending', label: 'Pareto Frontier' }] },
+  { section: 'Phase 3 — Router', items: [{ id: 'router', icon: 'zap', label: 'Runtime Router', badge: 'Groq' }] },
+  { section: 'Phase 4 — Refactor', items: [{ id: 'refactor', icon: 'refresh', label: 'Self-Refactoring' }] },
+  { section: 'Telemetry', items: [{ id: 'telemetry', icon: 'activity', label: 'Telemetry' }] },
 ]
 
 export default function Sidebar({ current, onNavigate }) {
@@ -25,7 +27,7 @@ export default function Sidebar({ current, onNavigate }) {
               className={`nav-item ${current === item.id ? 'active' : ''}`}
               onClick={() => onNavigate(item.id)}
             >
-              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-icon"><Icon name={item.icon} size={16} /></span>
               {item.label}
               {item.badge && <span className="nav-badge">{item.badge}</span>}
             </div>

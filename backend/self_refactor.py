@@ -19,11 +19,10 @@ from models import (
 from fca_engine import (
     load_formal_context, save_formal_context,
     compute_concept_lattice, find_concept_for_attributes,
-    get_task_attributes, galois_closure_from_attrs,
-    tasks_to_attributes, attributes_to_tasks
+    attributes_to_tasks
 )
 from pareto_engine import (
-    load_config_library, compute_pareto_front,
+    compute_pareto_front,
     get_pareto_frontier_for_concept
 )
 import telemetry
@@ -46,6 +45,8 @@ def add_tool(request: ToolUpdateRequest) -> dict:
     if request.tool_name in ctx.attributes:
         return {"status": "already_exists", "message": f"'{request.tool_name}' already in context."}
 
+    num_concepts_before = len(compute_concept_lattice(ctx).concepts)
+
     # Add attribute to attribute list and label map
     ctx.attributes.append(request.tool_name)
     ctx.attribute_labels[request.tool_name] = request.tool_label
@@ -67,7 +68,7 @@ def add_tool(request: ToolUpdateRequest) -> dict:
     return {
         "status": "added",
         "tool": request.tool_name,
-        "num_concepts_before": None,
+        "num_concepts_before": num_concepts_before,
         "num_concepts_after": len(lattice.concepts),
         "num_edges": len(lattice.edges),
         "message": f"Tool '{request.tool_label}' added. Lattice recomputed with {len(lattice.concepts)} concepts."
@@ -139,60 +140,48 @@ def check_redundancy(tool_name: str) -> RedundancyReport:
             explanation=f"Tool '{tool_name}' appears in no formal concept intent — it is unused."
         )
 
-    # For each concept containing the tool, find if there's another concept
-    # with strictly larger extent (more general) that does NOT require the tool
-    subsumed_by_concepts: List[str] = []
-    all_covered = True
+    # FCA criterion: a tool is ESSENTIAL if dropping it from some concept's
+    # intent grows that concept's extent (i.e. it discriminates between tasks).
+    # If no concept loses discrimination, the tool is redundant.
+    essential_concepts: List[FormalConcept] = []
+    distinguished_tasks: Set[str] = set()
 
     for tc in tool_concepts:
-        tc_extent = set(tc.extent)
-        # Look for a concept with superset extent and tool NOT in intent
-        covering_without_tool = [
-            c for c in lattice.concepts
-            if tool_name not in c.intent and tc_extent.issubset(set(c.extent))
-        ]
-        if not covering_without_tool:
-            all_covered = False
-            break
-        else:
-            subsumed_by_concepts.extend([c.id for c in covering_without_tool[:2]])
+        reduced_intent = set(tc.intent) - {tool_name}
+        reduced_extent = attributes_to_tasks(reduced_intent, ctx)
+        if set(tc.extent) != reduced_extent:
+            essential_concepts.append(tc)
+            distinguished_tasks.update(set(tc.extent))
 
-    subsumed_by_concepts = list(set(subsumed_by_concepts))
-
-    if all_covered and subsumed_by_concepts:
+    if not essential_concepts:
+        # Every concept extent is preserved without the tool → safe to remove.
+        subsumed_by_concepts = sorted({
+            c.id
+            for tc in tool_concepts
+            for c in lattice.concepts
+            if tool_name not in c.intent and set(tc.extent).issubset(set(c.extent))
+        })
         return RedundancyReport(
             tool=tool_name,
             is_redundant=True,
-            subsumed_by=subsumed_by_concepts,
+            subsumed_by=subsumed_by_concepts[:5],
             explanation=(
-                f"Tool '{tool_name}' is mathematically redundant. Every task requiring it "
-                f"is covered by concepts {subsumed_by_concepts} that do NOT require '{tool_name}'. "
-                f"Safe to remove."
+                f"Tool '{tool_name}' is mathematically redundant: removing it from every "
+                f"concept intent leaves all extents unchanged, so it adds no discriminating "
+                f"power. Safe to remove."
             )
         )
-    else:
-        # Find which tasks EXCLUSIVELY require this tool
-        exclusive_tasks = []
-        for task in ctx.tasks:
-            row = ctx.incidence.get(task, [])
-            if tool_name in ctx.attributes:
-                idx = ctx.attributes.index(tool_name)
-                if idx < len(row) and row[idx] == 1:
-                    # Check if removing this tool leaves the task uncovered
-                    task_attrs = get_task_attributes(task, ctx) - {tool_name}
-                    covering = find_concept_for_attributes(task_attrs, lattice)
-                    if covering is None or tool_name in covering.intent:
-                        exclusive_tasks.append(task)
 
-        return RedundancyReport(
-            tool=tool_name,
-            is_redundant=False,
-            subsumed_by=[],
-            explanation=(
-                f"Tool '{tool_name}' is NOT redundant. It exclusively serves "
-                f"{len(exclusive_tasks)} task(s): {exclusive_tasks[:3]}{'...' if len(exclusive_tasks) > 3 else ''}. "
-                f"Cannot safely remove."
-            )
+    return RedundancyReport(
+        tool=tool_name,
+        is_redundant=False,
+        subsumed_by=[],
+        explanation=(
+            f"Tool '{tool_name}' is NOT redundant. It is essential to "
+            f"{len(essential_concepts)} concept(s) (e.g. '{essential_concepts[0].id}'); "
+            f"removing it would expand their extent to "
+            f"{len(distinguished_tasks)} task(s). Cannot safely remove."
+        )
         )
 
 
@@ -213,7 +202,8 @@ def detect_gap(attribute_set: List[str]) -> GapReport:
 
     covering = find_concept_for_attributes(attr_set, lattice)
 
-    if covering is not None:
+    # A gap exists when the Galois closure has no realising task (empty extent).
+    if covering is not None and len(covering.extent) > 0:
         return GapReport(
             attribute_set=attribute_set,
             has_covering_concept=True,
@@ -226,16 +216,22 @@ def detect_gap(attribute_set: List[str]) -> GapReport:
             )
         )
 
-    # Find nearest concept (maximally overlapping intent)
+    # Gap: find the nearest *realised* concept (non-empty extent, max intent overlap)
     best: Optional[FormalConcept] = None
     best_overlap = -1
     for c in lattice.concepts:
+        if not c.extent:
+            continue
         overlap = len(attr_set & set(c.intent))
         if overlap > best_overlap:
             best_overlap = overlap
             best = c
 
     missing = list(attr_set - set(best.intent)) if best else list(attr_set)
+    if not missing:
+        # No single concept is missing a specific attribute, but the exact
+        # combination is unrealised: report the whole requested set.
+        missing = sorted(attr_set)
 
     return GapReport(
         attribute_set=attribute_set,

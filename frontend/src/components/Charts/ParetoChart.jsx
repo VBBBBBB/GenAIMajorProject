@@ -23,8 +23,8 @@ export default function ParetoChart({ configs, paretoFrontIds }) {
   })
 
   const data = [
-    mkTrace(paretoConfigs,   '✦ Pareto Optimal', '#10b981', 10, 'diamond'),
-    mkTrace(dominatedConfigs,'● Dominated',       '#475569',  6, 'circle'),
+    mkTrace(paretoConfigs,   'Pareto Optimal', '#10b981', 10, 'diamond'),
+    mkTrace(dominatedConfigs,'Dominated',       '#475569',  6, 'circle'),
   ]
 
   // Pareto front connecting line

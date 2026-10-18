@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { api } from '../api'
-import { StatCard, Card, Spinner, ProgressBar } from '../components/UI'
+import { StatCard, Card, Spinner, ProgressBar, Icon } from '../components/UI'
 
 const PIPELINE_STAGES = [
-  { num: 1, icon: '📝', label: 'Task Input' },
-  { num: 2, icon: '🧠', label: 'Attribute Extractor' },
-  { num: 3, icon: '⬡', label: 'Galois Closure' },
-  { num: 4, icon: '📈', label: 'Pareto Select' },
-  { num: 5, icon: '⚡', label: 'Execute (Groq)' },
-  { num: 6, icon: '📡', label: 'Telemetry Log' },
+  { num: 1, icon: 'edit', label: 'Task Input' },
+  { num: 2, icon: 'cpu', label: 'Attribute Extractor' },
+  { num: 3, icon: 'closure', label: 'Galois Closure' },
+  { num: 4, icon: 'trending', label: 'Pareto Select' },
+  { num: 5, icon: 'zap', label: 'Execute (Groq)' },
+  { num: 6, icon: 'activity', label: 'Telemetry Log' },
 ]
 
 export default function Overview({ onNavigate }) {
@@ -73,25 +73,25 @@ export default function Overview({ onNavigate }) {
 
       <div className="grid-2" style={{ marginBottom: 24 }}>
         {/* Pipeline */}
-        <Card title="Architecture Pipeline" icon="⚙️">
+        <Card title="Architecture Pipeline" icon="workflow">
           <div className="pipeline">
             {PIPELINE_STAGES.map((s, i) => (
-              <>
-                <div key={s.num} className="pipeline-stage done">
+              <Fragment key={s.num}>
+                <div className="pipeline-stage done">
                   <div className="stage-num">{s.num}</div>
-                  <div className="pipeline-icon">{s.icon}</div>
+                  <div className="pipeline-icon"><Icon name={s.icon} size={24} /></div>
                   <div className="pipeline-label">{s.label}</div>
                 </div>
                 {i < PIPELINE_STAGES.length - 1 && (
-                  <div key={`arr-${i}`} className="pipeline-arrow">→</div>
+                  <div className="pipeline-arrow">→</div>
                 )}
-              </>
+              </Fragment>
             ))}
           </div>
         </Card>
 
         {/* Avg metrics */}
-        <Card title="Avg Execution Metrics" icon="📊">
+        <Card title="Avg Execution Metrics" icon="chart">
           {telem && telem.total_executions > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 8 }}>
               <div>
@@ -123,16 +123,16 @@ export default function Overview({ onNavigate }) {
       </div>
 
       {/* Quick actions */}
-      <Card title="Quick Actions" icon="🚀">
+      <Card title="Quick Actions" icon="zap">
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
-          <button className="btn btn-primary"  onClick={() => onNavigate('router')}>⚡ Route a Task</button>
+          <button className="btn btn-primary"  onClick={() => onNavigate('router')}><Icon name="zap" size={14} /> Route a Task</button>
           <button className="btn btn-outline"  onClick={runBenchmark} disabled={benchmarkLoading}>
-            {benchmarkLoading ? <Spinner /> : '🧪'} Run Proof Benchmark
+            {benchmarkLoading ? <Spinner /> : <Icon name="target" size={14} />} Run Proof Benchmark
           </button>
-          <button className="btn btn-outline"  onClick={() => onNavigate('lattice')}>⬡ View Lattice</button>
-          <button className="btn btn-outline"  onClick={() => onNavigate('pareto')}>📈 Pareto Frontier</button>
+          <button className="btn btn-outline"  onClick={() => onNavigate('lattice')}><Icon name="network" size={14} /> View Lattice</button>
+          <button className="btn btn-outline"  onClick={() => onNavigate('pareto')}><Icon name="trending" size={14} /> Pareto Frontier</button>
           <button className="btn btn-success"  onClick={runMaintenance} disabled={loading}>
-            {loading ? <Spinner /> : '🔄'} Maintenance Cycle
+            {loading ? <Spinner /> : <Icon name="refresh" size={14} />} Maintenance Cycle
           </button>
         </div>
         {maint && (
@@ -144,7 +144,7 @@ export default function Overview({ onNavigate }) {
 
       {/* Benchmark Results Display */}
       {benchmarkResult && (
-        <Card title="Empirical Proof: FCA vs Vector Search" icon="🧪" style={{ marginTop: 24, borderColor: 'var(--accent)' }}>
+        <Card title="Empirical Proof: FCA vs Vector Search" icon="target" style={{ marginTop: 24, borderColor: 'var(--accent)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-sm)' }}>
               <div className="info-text" style={{ marginBottom: 4 }}>Random Task:</div>
@@ -180,7 +180,7 @@ export default function Overview({ onNavigate }) {
                     color: benchmarkResult.vector_search.success ? 'var(--text-primary)' : 'var(--red)',
                     whiteSpace: 'pre-wrap'
                   }}>
-                    > {benchmarkResult.vector_search.execution_output}
+                    {'> '}{benchmarkResult.vector_search.execution_output}
                   </pre>
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function Overview({ onNavigate }) {
                     color: benchmarkResult.latticeforge.success ? 'var(--text-primary)' : 'var(--red)',
                     whiteSpace: 'pre-wrap'
                   }}>
-                    > {benchmarkResult.latticeforge.execution_output}
+                    {'> '}{benchmarkResult.latticeforge.execution_output}
                   </pre>
                 </div>
               </div>

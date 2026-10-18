@@ -25,8 +25,7 @@ from fca_engine import (
     find_concept_for_attributes, galois_closure_from_attrs
 )
 from pareto_engine import (
-    get_pareto_frontier_for_concept, select_from_frontier,
-    compute_pareto_front
+    get_pareto_frontier_for_concept, select_from_frontier
 )
 import telemetry
 
@@ -138,19 +137,27 @@ PRIORITY_MAP = {
 }
 
 def classify_context(request: TaskRequest) -> Dict[str, float]:
-    """Derive priority weights from user tier and urgency. Override with explicit weights if sum != 1."""
-    explicit_sum = request.priority_quality + request.priority_latency + request.priority_cost
-    # If user provided non-default explicit weights, use them
-    if abs(explicit_sum - 1.0) < 0.01 and not (
-        request.priority_quality == 0.4 and
-        request.priority_latency == 0.3 and
-        request.priority_cost    == 0.3
-    ):
+    """
+    Derive priority weights from the user's explicit sliders when they have been
+    moved, otherwise fall back to the (user_tier, urgency) map. Explicit weights
+    are normalised to sum to 1 so any slider combination is honoured.
+    """
+    defaults = (0.4, 0.3, 0.3)
+    provided = (
+        request.priority_quality,
+        request.priority_latency,
+        request.priority_cost,
+    )
+    is_default = all(abs(p - d) < 1e-9 for p, d in zip(provided, defaults))
+    total = sum(provided)
+
+    if not is_default and total > 0:
         return {
-            "quality": request.priority_quality,
-            "latency": request.priority_latency,
-            "cost":    request.priority_cost,
+            "quality": provided[0] / total,
+            "latency": provided[1] / total,
+            "cost":    provided[2] / total,
         }
+
     key = (request.user_tier, request.urgency)
     return PRIORITY_MAP.get(key, {"quality": 0.40, "latency": 0.30, "cost": 0.30})
 
@@ -238,9 +245,11 @@ def route_and_execute(request: TaskRequest) -> RoutingResult:
     # Stage 3: Context classification → weights
     weights = classify_context(request)
 
-    # Stage 4: Get Pareto frontier and select config
-    pf      = get_pareto_frontier_for_concept(concept.id)
-    front   = compute_pareto_front(pf.configurations)
+    # Stage 4: Get Pareto frontier (pool chosen from the requested capabilities)
+    pf      = get_pareto_frontier_for_concept(
+        concept.id, concept=concept, requested_attributes=attr_set
+    )
+    front   = [c for c in pf.configurations if c.id in pf.pareto_front]
     config  = select_from_frontier(front, weights) or pf.configurations[0]
 
     # Build reasoning string
@@ -249,7 +258,8 @@ def route_and_execute(request: TaskRequest) -> RoutingResult:
         f"Galois closure matched concept '{concept.id}' covering tasks: "
         f"{concept.extent[:3]}{'...' if len(concept.extent) > 3 else ''}. "
         f"Context weights: Q={weights['quality']:.2f} L={weights['latency']:.2f} C={weights['cost']:.2f}. "
-        f"Selected '{config.name}' from Pareto front of {len(front)} configs."
+        f"Capability signature matched the '{pf.pool}' pool; "
+        f"selected '{config.name}' from its Pareto front of {len(front)} configs."
     )
 
     # Stage 5: Execute

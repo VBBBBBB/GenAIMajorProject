@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { Card, Spinner } from '../components/UI'
+import { Card, Spinner, Icon } from '../components/UI'
 import ParetoChart from '../components/Charts/ParetoChart'
 import { useToast } from '../context/ToastContext'
 
@@ -39,9 +39,8 @@ export default function ParetoFrontier() {
 
   async function selectConfig() {
     if (!data) return
-    const fakeConceptId = 'C' + pool.toUpperCase().slice(0, 6).padEnd(8, '0')
     try {
-      const r = await api.selectConfig(fakeConceptId, weights.q, weights.l, weights.c)
+      const r = await api.selectPoolConfig(pool, weights.q, weights.l, weights.c)
       setSelected(r.selected)
     } catch {
       // fallback: compute locally
@@ -67,7 +66,7 @@ export default function ParetoFrontier() {
         </div>
       </div>
 
-      <Card title="3D Pareto Surface" icon="📈" style={{ marginBottom: 18 }}
+      <Card title="3D Pareto Surface" icon="trending" style={{ marginBottom: 18 }}
         extra={
           <select value={pool} onChange={handlePoolChange} style={{ width: 200 }}>
             {POOLS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
@@ -80,9 +79,9 @@ export default function ParetoFrontier() {
         }
       </Card>
 
-      <Card title="Configurations" icon="⚙️">
+      <Card title="Configurations" icon="sliders">
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          <span className="tag tag-green">🟢 Pareto Optimal ({paretoIds.length})</span>
+          <span className="tag tag-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="check" size={12} /> Pareto Optimal ({paretoIds.length})</span>
           <span className="tag tag-muted">Dominated ({configs.length - paretoIds.length})</span>
         </div>
 
@@ -92,7 +91,7 @@ export default function ParetoFrontier() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <div className="config-name">{c.name}</div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  {paretoIds.includes(c.id) && <span className="tag tag-green">Pareto ✦</span>}
+                  {paretoIds.includes(c.id) && <span className="tag tag-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Icon name="check" size={11} /> Pareto</span>}
                   <span className="tag tag-accent" style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{c.model}</span>
                 </div>
               </div>
@@ -109,7 +108,7 @@ export default function ParetoFrontier() {
         <hr className="hr-divider" />
 
         <div className="card-title" style={{ marginBottom: 14 }}>
-          <span>🎯</span> Interactive Selector
+          <Icon name="target" size={16} className="card-icon" /> Interactive Selector
         </div>
         <div className="weight-controls">
           {[
@@ -132,12 +131,14 @@ export default function ParetoFrontier() {
         </div>
 
         <button className="btn btn-primary" style={{ marginTop: 14 }} onClick={selectConfig}>
-          🎯 Select Best Config
+          <Icon name="target" size={14} /> Select Best Config
         </button>
 
         {selected && (
           <div className="result-box" style={{ marginTop: 14 }}>
-            <div style={{ color: 'var(--green)', fontWeight: 700, marginBottom: 8 }}>✦ Selected: {selected.name}</div>
+            <div style={{ color: 'var(--green)', fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="check" size={14} /> Selected: {selected.name}
+            </div>
             <div className="metrics-row">
               <div className="metric"><div className="metric-label">Quality</div><div className="metric-value quality-val">{selected.quality}</div></div>
               <div className="metric"><div className="metric-label">Latency</div><div className="metric-value latency-val">{selected.latency_ms}ms</div></div>

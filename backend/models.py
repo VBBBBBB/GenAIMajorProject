@@ -51,6 +51,7 @@ class ParetoFrontier(BaseModel):
     concept_id: str
     configurations: List[Configuration]
     pareto_front: List[str]   # ids of non-dominated configs
+    pool: Optional[str] = None  # configuration pool selected from the concept intent
 
 
 # ---------------------------------------------------------------------------

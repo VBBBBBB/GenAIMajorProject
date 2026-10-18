@@ -1,22 +1,22 @@
 import { useState } from 'react'
 import { api } from '../api'
-import { Card, Spinner } from '../components/UI'
+import { Card, Spinner, Icon } from '../components/UI'
 import { useToast } from '../context/ToastContext'
 
 const SAMPLES = [
-  { label: '📄 Research Report', text: 'Write a comprehensive research report on the latest developments in quantum computing, including analysis of recent papers and web sources.', tier: 'premium', urgency: 'normal' },
-  { label: '💻 Code Review', text: 'Review this Python codebase for security vulnerabilities, code quality issues, and suggest refactoring opportunities.', tier: 'standard', urgency: 'high' },
-  { label: '📊 Data Analysis', text: 'Analyze our Q3 sales database and generate statistical insights with SQL queries, comparing performance across regions.', tier: 'premium', urgency: 'normal' },
-  { label: '⚖️ Legal Review', text: 'Review this 50-page software license agreement, identify key obligations, risks, and unusual clauses.', tier: 'premium', urgency: 'critical' },
-  { label: '🐛 Bug Fix', text: 'Investigate and fix the race condition in our async Python service causing intermittent 500 errors under load.', tier: 'standard', urgency: 'critical' },
-  { label: '🗄️ SQL Query', text: 'Write optimized SQL queries to find the top 10 customers by revenue for each region, with year-over-year growth rates.', tier: 'bulk', urgency: 'low' },
+  { label: 'Research Report', text: 'Write a comprehensive research report on the latest developments in quantum computing, including analysis of recent papers and web sources.', tier: 'premium', urgency: 'normal' },
+  { label: 'Code Review', text: 'Review this Python codebase for security vulnerabilities, code quality issues, and suggest refactoring opportunities.', tier: 'standard', urgency: 'high' },
+  { label: 'Data Analysis', text: 'Analyze our Q3 sales database and generate statistical insights with SQL queries, comparing performance across regions.', tier: 'premium', urgency: 'normal' },
+  { label: 'Legal Review', text: 'Review this 50-page software license agreement, identify key obligations, risks, and unusual clauses.', tier: 'premium', urgency: 'critical' },
+  { label: 'Bug Fix', text: 'Investigate and fix the race condition in our async Python service causing intermittent 500 errors under load.', tier: 'standard', urgency: 'critical' },
+  { label: 'SQL Query', text: 'Write optimized SQL queries to find the top 10 customers by revenue for each region, with year-over-year growth rates.', tier: 'bulk', urgency: 'low' },
 ]
 
 const STAGE_LABELS = [
-  { num: 1, icon: '🧠', label: 'Attribute Extraction (Groq)', detail: id => id?.extracted_attributes?.length ? `Found: ${id.extracted_attributes.join(', ')}` : 'Extracting…' },
-  { num: 2, icon: '⬡', label: 'Galois Closure (FCA)',         detail: id => id?.matched_concept ? `Concept: ${id.matched_concept.id}` : 'Computing closure…' },
-  { num: 3, icon: '📈', label: 'Context → Pareto Select',      detail: id => id?.selected_configuration ? `Selected: ${id.selected_configuration.name}` : 'Selecting config…' },
-  { num: 4, icon: '⚡', label: 'Execution (Groq)',             detail: id => id?.execution_result ? 'Done' : 'Executing…' },
+  { num: 1, icon: 'cpu', label: 'Attribute Extraction (Groq)', detail: id => id?.extracted_attributes?.length ? `Found: ${id.extracted_attributes.join(', ')}` : 'Extracting…' },
+  { num: 2, icon: 'closure', label: 'Galois Closure (FCA)',         detail: id => id?.matched_concept ? `Concept: ${id.matched_concept.id}` : 'Computing closure…' },
+  { num: 3, icon: 'trending', label: 'Context → Pareto Select',      detail: id => id?.selected_configuration ? `Selected: ${id.selected_configuration.name}` : 'Selecting config…' },
+  { num: 4, icon: 'zap', label: 'Execution (Groq)',             detail: id => id?.execution_result ? 'Done' : 'Executing…' },
 ]
 
 export default function RuntimeRouter() {
@@ -44,6 +44,7 @@ export default function RuntimeRouter() {
     setResult(null)
     setStage(1)
 
+    let timer
     try {
       const payload = {
         task_description: task,
@@ -53,10 +54,9 @@ export default function RuntimeRouter() {
         user_tier:        tier,
         urgency,
       }
-      // Simulate stage progression
-      const timer = setInterval(() => setStage(s => Math.min(s + 1, 4)), 1800)
+      // Simulate stage progression while the backend pipeline runs
+      timer = setInterval(() => setStage(s => Math.min(s + 1, 4)), 1800)
       const r = await api.routeTask(payload)
-      clearInterval(timer)
       setStage(4)
       setResult(r)
       toast('Task routed successfully!', 'success')
@@ -64,6 +64,7 @@ export default function RuntimeRouter() {
       toast(e.message, 'error')
       setStage(0)
     } finally {
+      if (timer) clearInterval(timer)
       setLoading(false)
     }
   }
@@ -81,7 +82,7 @@ export default function RuntimeRouter() {
 
       <div className="router-grid">
         {/* Left: input */}
-        <Card title="Task Input" icon="📝">
+        <Card title="Task Input" icon="edit">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div className="input-group">
               <label className="input-label">Task Description</label>
@@ -140,13 +141,13 @@ export default function RuntimeRouter() {
             </div>
 
             <button className="btn btn-primary btn-lg" onClick={routeTask} disabled={loading}>
-              {loading ? <><Spinner /> Routing…</> : '⚡ Route & Execute'}
+              {loading ? <><Spinner /> Routing…</> : <><Icon name="zap" size={16} /> Route &amp; Execute</>}
             </button>
           </div>
         </Card>
 
         {/* Right: pipeline stages */}
-        <Card title="Pipeline Stages" icon="⚙️">
+        <Card title="Pipeline Stages" icon="workflow">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {STAGE_LABELS.map(s => (
               <div
@@ -154,22 +155,22 @@ export default function RuntimeRouter() {
                 className={`pipeline-stage ${stage > s.num ? 'done' : stage === s.num ? 'active' : ''}`}
                 style={{ flexDirection: 'row', minWidth: 'unset', padding: '10px 14px' }}
               >
-                <div style={{ marginRight: 12, fontSize: 22 }}>{s.icon}</div>
+                <div style={{ marginRight: 12, color: 'var(--accent3)', display: 'flex' }}><Icon name={s.icon} size={22} /></div>
                 <div>
                   <div className="pipeline-label" style={{ textAlign: 'left', fontSize: 12 }}>
                     Stage {s.num}: {s.label}
                   </div>
                   <div className="info-text" style={{ marginTop: 2 }}>
                     {stage > s.num
-                      ? (result ? s.detail(result) : '✓ Done')
+                      ? (result ? s.detail(result) : 'Done')
                       : stage === s.num
-                        ? '⟳ Processing…'
+                        ? 'Processing…'
                         : 'Waiting…'
                     }
                   </div>
                 </div>
                 {stage > s.num && (
-                  <div style={{ marginLeft: 'auto', color: 'var(--green)', fontSize: 18 }}>✓</div>
+                  <div style={{ marginLeft: 'auto', color: 'var(--green)', display: 'flex' }}><Icon name="check" size={16} /></div>
                 )}
                 {stage === s.num && loading && (
                   <div style={{ marginLeft: 'auto' }}><Spinner /></div>
@@ -184,7 +185,7 @@ export default function RuntimeRouter() {
       {result && (
         <div className="result-box">
           <div className="result-section">
-            <h4>🧠 Extracted Attributes ({result.extracted_attributes?.length})</h4>
+            <h4><Icon name="cpu" size={14} /> Extracted Attributes ({result.extracted_attributes?.length})</h4>
             <div className="tags-row">
               {result.extracted_attributes?.map(a => <span key={a} className="tag tag-cyan">{a}</span>)}
               {!result.extracted_attributes?.length && <span className="info-text">None extracted</span>}
@@ -192,7 +193,7 @@ export default function RuntimeRouter() {
           </div>
 
           <div className="result-section">
-            <h4>⬡ Matched Formal Concept</h4>
+            <h4><Icon name="network" size={14} /> Matched Formal Concept</h4>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)', fontSize: 14 }}>
                 {result.matched_concept?.id}
@@ -204,12 +205,12 @@ export default function RuntimeRouter() {
           </div>
 
           <div className="result-section">
-            <h4>⚙️ Selected Configuration</h4>
+            <h4><Icon name="sliders" size={14} /> Selected Configuration</h4>
             {result.selected_configuration && (
               <div className="config-card pareto" style={{ marginTop: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <div className="config-name">{result.selected_configuration.name}</div>
-                  <span className="tag tag-green">✦ Pareto Selected</span>
+                  <span className="tag tag-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Icon name="check" size={11} /> Pareto Selected</span>
                 </div>
                 <div className="metrics-row">
                   <div className="metric"><div className="metric-label">Model</div><div className="metric-value" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{result.selected_configuration.model}</div></div>
@@ -222,19 +223,19 @@ export default function RuntimeRouter() {
           </div>
 
           <div className="result-section">
-            <h4>🤖 Routing Reasoning</h4>
+            <h4><Icon name="route" size={14} /> Routing Reasoning</h4>
             <div className="reasoning-text">{result.reasoning}</div>
           </div>
 
           <div className="result-section">
-            <h4>📝 Execution Result</h4>
+            <h4><Icon name="terminal" size={14} /> Execution Result</h4>
             <div className="result-text">{result.execution_result}</div>
           </div>
 
           <div style={{ display: 'flex', gap: 24, marginTop: 14, fontSize: 12 }}>
-            <span>⏱ Latency: <strong className="glow-yellow">{result.latency_ms?.toFixed(0)}ms</strong></span>
-            <span>💰 Cost: <strong className="glow-cyan">${result.cost_estimate}</strong></span>
-            <span>🎯 Priority: Q={result.priority_weights?.quality?.toFixed(2)} L={result.priority_weights?.latency?.toFixed(2)} C={result.priority_weights?.cost?.toFixed(2)}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="clock" size={13} /> Latency: <strong className="glow-yellow">{result.latency_ms?.toFixed(0)}ms</strong></span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="dollar" size={13} /> Cost: <strong className="glow-cyan">${result.cost_estimate}</strong></span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="target" size={13} /> Priority: Q={result.priority_weights?.quality?.toFixed(2)} L={result.priority_weights?.latency?.toFixed(2)} C={result.priority_weights?.cost?.toFixed(2)}</span>
           </div>
         </div>
       )}

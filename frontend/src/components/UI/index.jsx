@@ -1,3 +1,7 @@
+import Icon from './Icon'
+
+export { Icon }
+
 export function StatCard({ label, value, sub, color }) {
   return (
     <div className="stat-card">
@@ -16,10 +20,10 @@ export function Spinner() {
   return <span className="spinner" />
 }
 
-export function EmptyState({ icon = '⬡', message }) {
+export function EmptyState({ icon = 'inbox', message }) {
   return (
     <div className="empty-state">
-      <div className="empty-icon">{icon}</div>
+      <div className="empty-icon"><Icon name={icon} size={40} strokeWidth={1.5} /></div>
       <p>{message}</p>
     </div>
   )
@@ -47,7 +51,10 @@ export function Card({ title, icon, extra, children, style }) {
     <div className="card" style={style}>
       {(title || icon) && (
         <div className="card-header">
-          <div className="card-title">{icon && <span>{icon}</span>}{title}</div>
+          <div className="card-title">
+            {icon && <Icon name={icon} size={16} className="card-icon" />}
+            {title}
+          </div>
           {extra}
         </div>
       )}

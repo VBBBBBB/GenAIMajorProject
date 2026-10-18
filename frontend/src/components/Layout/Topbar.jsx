@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../api'
+import { Icon } from '../UI'
 
 export default function Topbar({ onNavigate }) {
   const [status, setStatus] = useState({ ok: false, model: '…' })
@@ -13,7 +14,7 @@ export default function Topbar({ onNavigate }) {
   return (
     <header className="topbar">
       <div className="topbar-logo">
-        <div className="logo-icon">⬡</div>
+        <div className="logo-icon"><Icon name="logo" size={18} /></div>
         <div className="logo-text">Lattice<span>Forge</span></div>
       </div>
 
@@ -27,8 +28,8 @@ export default function Topbar({ onNavigate }) {
       </div>
 
       <div className="topbar-actions">
-        <button className="btn btn-outline btn-sm" onClick={() => window.location.reload()}>⟳ Refresh</button>
-        <button className="btn btn-primary btn-sm" onClick={() => onNavigate('router')}>⚡ Run Task</button>
+        <button className="btn btn-outline btn-sm" onClick={() => window.location.reload()}><Icon name="refresh" size={14} /> Refresh</button>
+        <button className="btn btn-primary btn-sm" onClick={() => onNavigate('router')}><Icon name="play" size={14} /> Run Task</button>
       </div>
     </header>
   )

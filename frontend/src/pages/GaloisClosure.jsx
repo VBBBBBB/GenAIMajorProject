@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { Card, Spinner } from '../components/UI'
+import { Card, Spinner, Icon } from '../components/UI'
 import { useToast } from '../context/ToastContext'
 
 export default function GaloisClosure() {
@@ -49,7 +49,7 @@ export default function GaloisClosure() {
       </div>
 
       <div className="grid-2">
-        <Card title="Query Attributes" icon="⊕">
+        <Card title="Query Attributes" icon="closure">
           <p className="info-text" style={{ marginBottom: 14 }}>
             Select capability attributes. The Galois closure B″ = (B′)′ gives the smallest formal concept
             whose intent contains all selected attributes — <strong>mathematically exact</strong>, not fuzzy.
@@ -75,14 +75,14 @@ export default function GaloisClosure() {
             </div>
           )}
           <button className="btn btn-primary" onClick={compute} disabled={loading || selected.size === 0}>
-            {loading ? <Spinner /> : '⊕'} Compute Galois Closure
+            {loading ? <Spinner /> : <Icon name="closure" size={14} />} Compute Galois Closure
           </button>
         </Card>
 
-        <Card title="Closure Result" icon="🎯">
+        <Card title="Closure Result" icon="target">
           {!result && !loading && (
             <div className="empty-state" style={{ padding: 32 }}>
-              <div className="empty-icon">⊕</div>
+              <div className="empty-icon"><Icon name="closure" size={40} strokeWidth={1.5} /></div>
               <p>Select attributes and click Compute</p>
             </div>
           )}
@@ -100,7 +100,9 @@ export default function GaloisClosure() {
 
               {result.gap_detected ? (
                 <div style={{ padding: 16, background: 'rgba(239,68,68,0.08)', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)' }}>
-                  <div style={{ color: 'var(--red)', fontWeight: 700, marginBottom: 8 }}>⚠ Capability Gap Detected</div>
+                  <div style={{ color: 'var(--red)', fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Icon name="alert" size={16} /> Capability Gap Detected
+                  </div>
                   <p className="info-text">No formal concept covers this attribute set. Consider adding a new tool.</p>
                 </div>
               ) : (

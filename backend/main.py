@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from typing import List
@@ -28,11 +28,12 @@ load_dotenv()
 from models import TaskRequest, ToolUpdateRequest
 from fca_engine import (
     load_formal_context, save_formal_context, compute_concept_lattice,
-    find_concept_for_attributes, get_concept_by_id, check_attribute_gap,
+    find_concept_for_attributes,
     lattice_to_dict, galois_closure_from_attrs
 )
 from pareto_engine import (
-    get_pareto_frontier_for_concept, pareto_frontier_to_dict,
+    get_pareto_frontier_for_concept, get_pareto_frontier_for_pool,
+    pareto_frontier_to_dict,
     compute_pareto_front, get_all_configurations_for_pool, select_from_frontier
 )
 from router import route_and_execute, extract_attributes
@@ -52,18 +53,29 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Allowed origins: comma-separated via env, defaulting to the local dev origins.
+# (A wildcard origin cannot be combined with credentials, so we list explicitly.)
+_cors_env = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173",
+)
+ALLOWED_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Serve frontend static files
-FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
-if FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+# Serve the built frontend (Vite `dist`) if it exists. During development the
+# app is served by the Vite dev server, so nothing is mounted here.
+FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
+if FRONTEND_DIST.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIST)), name="static")
+    if (FRONTEND_DIST / "assets").exists():
+        app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")), name="assets")
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +84,7 @@ if FRONTEND_DIR.exists():
 
 @app.get("/")
 async def serve_frontend():
-    index = FRONTEND_DIR / "index.html"
+    index = FRONTEND_DIST / "index.html"
     if index.exists():
         return FileResponse(str(index))
     return {"message": "LatticeForge API running. Visit /docs for API documentation."}
@@ -179,7 +191,7 @@ async def select_config(
 ):
     """Select the best configuration on the Pareto frontier given priority weights."""
     pf     = get_pareto_frontier_for_concept(concept_id)
-    front  = compute_pareto_front(pf.configurations)
+    front  = [c for c in pf.configurations if c.id in pf.pareto_front]
     weights = {
         "quality": weight_quality,
         "latency": weight_latency,
@@ -188,9 +200,34 @@ async def select_config(
     selected = select_from_frontier(front, weights)
     return {
         "concept_id":  concept_id,
+        "pool":        pf.pool,
         "weights":     weights,
         "selected":    selected.model_dump() if selected else None,
         "front_size":  len(front),
+    }
+
+
+@app.post("/api/pareto/select-pool")
+async def select_config_from_pool(
+    pool: str = "default",
+    weight_quality: float = 0.4,
+    weight_latency: float = 0.3,
+    weight_cost:    float = 0.3,
+):
+    """Select the best configuration from an explicitly named pool's Pareto frontier."""
+    pf     = get_pareto_frontier_for_pool(pool)
+    front  = [c for c in pf.configurations if c.id in pf.pareto_front]
+    weights = {
+        "quality": weight_quality,
+        "latency": weight_latency,
+        "cost":    weight_cost,
+    }
+    selected = select_from_frontier(front, weights)
+    return {
+        "pool":       pf.pool,
+        "weights":    weights,
+        "selected":   selected.model_dump() if selected else None,
+        "front_size": len(front),
     }
 
 

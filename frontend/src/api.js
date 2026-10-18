@@ -34,6 +34,8 @@ export const api = {
   getPoolConfigs:      (pool = 'default') => req('GET', `/pareto/pool/${pool}`),
   selectConfig:        (conceptId, wq, wl, wc) =>
     req('POST', `/pareto/select?concept_id=${conceptId}&weight_quality=${wq}&weight_latency=${wl}&weight_cost=${wc}`),
+  selectPoolConfig:    (pool, wq, wl, wc) =>
+    req('POST', `/pareto/select-pool?pool=${encodeURIComponent(pool)}&weight_quality=${wq}&weight_latency=${wl}&weight_cost=${wc}`),
 
   // ── Router ───────────────────────────────────────────────────────────────
   routeTask:           (payload) => req('POST', '/route', payload),
